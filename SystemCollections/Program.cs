@@ -174,45 +174,29 @@ namespace SystemCollections
     }
     public static class ExpandEnumerable
     {
-        public static IEnumerable ByExpensive(this IEnumerable enumObj)
+        private static IEnumerable GeneralMethod(this IEnumerable obj, string type)
         {
-            Product customerCollection = enumObj as Product;
-            Product[][] products = new Product[customerCollection.CustomerCount][];
+            Product[] products = obj as Product[];
             for (int i = 0; i < products.Length; i++)
             {
-                products[i] = customerCollection.GetProductArr(i);
-            }
-            for (int i = 0; i < products.Length; i++)
-            {
-                for (int j = 0; j < customerCollection.GetProductArr(i).Length; j++)
-                {
-                    yield return products[i][j];
-                }
-            }
-        }
-        public static IEnumerable ByMedium(this IEnumerable enumObj)
-        {
-            CustomerCollection customerCollection = enumObj as CustomerCollection;
-            Product[] products = customerCollection.GetProductArr(2);
-            for (int i = 0; i < products.Length; i++)
-            {
-                if (products[i].Type == "Medium")
+                if (products[i].Type == type)
                 {
                     yield return products[i];
                 }
             }
         }
-        public static IEnumerable ByCheap(this IEnumerable enumObj)
+        public static IEnumerable GetExpensives(this IEnumerable obj)
         {
-            CustomerCollection customerCollection = enumObj as CustomerCollection;
-            Product[] products = customerCollection.GetProductArr(2);
-            for (int i = 0; i < products.Length; i++)
-            {
-                if (products[i].Type == "Cheap")
-                {
-                    yield return products[i];
-                }
-            }
+            return GeneralMethod(obj, "Expensive");                                
+        }
+        public static IEnumerable GetMedium(this IEnumerable obj)
+        {
+            return GeneralMethod(obj, "Medium");
+        }
+        public static IEnumerable GetCheap(this IEnumerable obj)
+        {
+            
+            return GeneralMethod(obj, "Cheap");
         }
     }
     class Program
@@ -255,9 +239,8 @@ namespace SystemCollections
             foreach(Customer customer in customers)
             {
                 Console.WriteLine(customer.Name);
-                foreach (var product1 in customer.Product.ByExpensive())
+                foreach (Product product in customer.Product.GetExpensives())
                 {
-                    Product product = product1 as Product;
                     Console.WriteLine($"\t{product.Name}, {product.Price}");
                 }
             }
