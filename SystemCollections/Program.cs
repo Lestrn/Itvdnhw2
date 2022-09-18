@@ -146,8 +146,6 @@ namespace SystemCollections
         {
             return _customers.GetEnumerator();
         }
-
-
         public ISetPropertiesForProduct AddCustomer(Product[] products , string customerName = "Unkown", string customerEmail = "Unknown")
         {
 
@@ -165,84 +163,113 @@ namespace SystemCollections
 
             }
         }
-        public Product[] GetProductArr(Index i)
-        {
-            return _customers[i].Product;
-        }
-        
 
     }
     public static class ExpandEnumerable
     {
-        private static IEnumerable GeneralMethod(this IEnumerable obj, string type)
+        private static IEnumerable GeneralMethodForProducts(this IEnumerable obj, string type)
         {
-            Product[] products = obj as Product[];
-            for (int i = 0; i < products.Length; i++)
+            if (obj is Product[])
             {
-                if (products[i].Type == type)
+                Product[] products = obj as Product[];
+                for (int i = 0; i < products.Length; i++)
                 {
-                    yield return products[i];
+                    if (products[i].Type == type)
+                    {
+                        yield return products[i];
+                    }
                 }
+            }
+            else if(obj is CustomerCollection)
+            {
+                CustomerCollection customerCollection = obj as CustomerCollection;
+                foreach (Customer customer in customerCollection.GetCustomers())
+                {
+                    for (int i = 0; i < customer.Product.Length; i++)
+                    {
+                        if (customer.Product[i].Type == type)
+                        {
+                            yield return customer;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("Get types only works with CustomerCollection or Product[]");
             }
         }
         public static IEnumerable GetExpensives(this IEnumerable obj)
         {
-            return GeneralMethod(obj, "Expensive");                                
+            return GeneralMethodForProducts(obj, "Expensive");                                
         }
         public static IEnumerable GetMedium(this IEnumerable obj)
         {
-            return GeneralMethod(obj, "Medium");
+            return GeneralMethodForProducts(obj, "Medium");
         }
         public static IEnumerable GetCheap(this IEnumerable obj)
         {
             
-            return GeneralMethod(obj, "Cheap");
+            return GeneralMethodForProducts(obj, "Cheap");
         }
     }
     class Program
     {
         public static void Main()
         {
-            Product[] products = new Product[12];
+           
             Random random = new Random();
-            Product[][] productsOfProducts = new Product[10][];
 
+            Product[][] productsOfProducts = new Product[10][];
             for (int i = 0; i < productsOfProducts.Length; i++)
             {
+                Product[] products = new Product[random.Next(6, 12)];
                 for (int j = 0, randNumber; j < products.Length; j++)
-                {
+                {                    
                     randNumber = random.Next(0, 3);
                     products[j] = new Product();
                     if (randNumber == 0)
                     {
                         products[j].Name = "Pasta";
-                        products[j].SetCheap().SetPrice(10);
+                        products[j].SetCheap().SetPrice(random.Next(1, 10));
                     }
                     else if (randNumber == 1)
                     {
                         products[j].Name = "Phone";
-                        products[j].SetMedium().SetPrice(2599.3123m);
+                        products[j].SetMedium().SetPrice(random.Next(1001, 5000));
                     }
                     else if(randNumber == 2)
                     {
                         products[j].Name = "Car";
-                        products[j].SetExpensive().SetPrice(1203003.1233m);
+                        products[j].SetExpensive().SetPrice(random.Next(6000, 20000));
                     }
                 }
                 productsOfProducts[i] = products;
             }
+            string[] names = new string[]
+            { "Pierce", "Pierre-Antoine", "Pieter", "Pietro", "Piotr",
+                "Porter", "Prabhjoit", "Prabodhan", "Praise", "Pranav",
+                "Pravin", "Precious", "Prentice", "Presley", "Preston",
+                "Preston-Jay", "Prinay", "Prince", "Prithvi", "Promise",
+                "Puneetpaul", "Pushkar"
+            };
             CustomerCollection customers = new CustomerCollection();
             for (int i = 0; i < 10; i++)
             {
-                customers.AddCustomer(productsOfProducts[i], "Bebra", "ilestrn@gmail.com");
+                customers.AddCustomer(productsOfProducts[i], names[random.Next(0, names.Length - 1)], "ilestrn@gmail.com");
             }
             foreach(Customer customer in customers)
             {
                 Console.WriteLine(customer.Name);
                 foreach (Product product in customer.Product.GetExpensives())
                 {
-                    Console.WriteLine($"\t{product.Name}, {product.Price}");
+                    Console.WriteLine($"\t{product.Name}, Price {product.Price}$");
                 }
+            }
+            foreach (Customer customer in customers.GetExpensives())
+            {
+                Console.WriteLine(customer.Name);
             }
 
         }
